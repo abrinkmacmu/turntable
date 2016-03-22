@@ -1,0 +1,15 @@
+<launch>
+    <node name="kinect_viewer" pkg="turntable" type="kinect_viewer" output="screen"/>
+    
+   <!--
+    <node respawn="true" pkg="rosserial_python" type="serial_node.py" name="serial_node_nano">
+        <param name="port" value="/dev/ttyUSB0"/>
+        <param name="baud" value="57600"/>
+    </node>
+    -->
+
+    <include file="$(find turntable)/launch/spawner.launch"/>
+    <include file="$(find turntable)/launch/manager.launch"/>
+
+    <include file="$(find kinect2_bridge)/launch/kinect2_bridge.launch"/>
+</launch>
