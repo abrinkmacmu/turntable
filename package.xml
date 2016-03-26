@@ -56,6 +56,11 @@
   <build_depend>kinect2_bridge</build_depend>
   <build_depend>libpcl-all-dev</build_depend>
   <build_depend>cv_bridge</build_depend>
+  <build_depend>message_generation</build_depend>
+  <build_depend>pcl_conversions</build_depend>
+  <build_depend>pcl_ros</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>libpcl-all-dev</build_depend>
 
   <run_depend>message_runtime</run_depend>
   <run_depend>dynamixel_controllers</run_depend>
@@ -74,6 +79,11 @@
   <run_depend>libpcl-all-dev</run_depend>
   <run_depend>libpcl-all</run_depend>
   <run_depend>cv_bridge</run_depend>
+  <run_depend>message_generation</run_depend>
+  <run_depend>pcl_conversions</run_depend>
+  <run_depend>pcl_ros</run_depend>
+  <run_depend>sensor_msgs</run_depend>
+  <run_depend>libpcl-all</run_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->

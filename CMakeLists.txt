@@ -41,6 +41,8 @@ find_package(catkin REQUIRED COMPONENTS
   compressed_image_transport 
   compressed_depth_image_transport 
   kinect2_bridge
+  pcl_conversions
+  pcl_ros
 )
 
 find_package(OpenCV REQUIRED)
@@ -92,11 +94,10 @@ endif()
 # )
 
 ## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
+ add_service_files(
+  FILES
+  saveImages.srv
+ )
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -106,10 +107,12 @@ endif()
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   dynamixel_msgs#   geometry_msgs#   std_msgs
-# )
+ generate_messages(
+    DEPENDENCIES
+   dynamixel_msgs
+   geometry_msgs
+   std_msgs
+ )
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -180,6 +183,12 @@ target_link_libraries(kinect_viewer
 
 add_executable(run_turntable src/run_turntable.cpp)
 target_link_libraries(run_turntable ${catkin_LIBRARIES})
+
+add_executable(filter_greenscreen_node src/filter_greenscreen_node.cpp)
+target_link_libraries(filter_greenscreen_node ${catkin_LIBRARIES})
+
+add_executable(save_images_server src/save_images_server.cpp)
+target_link_libraries(save_images_server ${catkin_LIBRARIES})
 
 #############
 ## Install ##

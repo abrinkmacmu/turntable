@@ -5,6 +5,8 @@
 #include <sstream>
 #include <cmath>
 
+#include "turntable/saveImages.h"
+
 int main(int argc, char **argv)
 {
  
@@ -12,6 +14,8 @@ int main(int argc, char **argv)
   ros::NodeHandle n;
   ros::Publisher LA_pub = n.advertise<std_msgs::Int16>("LA_command_1", 1);
   ros::Publisher Dyn_pub = n.advertise<std_msgs::Float64>("turntable_controller/command", 1);
+
+  ros::ServiceClient save_images_client = n.serviceClient<turntable::saveImages>("save_images");
 
   ros::Rate loop_rate(10);
   
@@ -46,10 +50,20 @@ int main(int argc, char **argv)
 
       LA_pub.publish(LA_cmd_sm);
       ros::Duration(2.0).sleep();
+      
+
+      
+
       if(LA_cmd > LA_max){
         LA_cmd = LA_min;
       }
     }
+    turntable::saveImages srv;
+    srv.request.item_number = 1;
+    srv.request.angle = 30;
+    srv.request.count = 10;
+    bool res = save_images_client.call(srv);
+    std::cout << "response is: "<< res<< std::endl;
     std::cout << "Dyn:"<< Dyn_cmd<<"  LA: "<<LA_cmd<<std::endl;
     ros::spinOnce();
     loop_rate.sleep();
