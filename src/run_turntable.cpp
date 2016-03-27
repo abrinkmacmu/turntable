@@ -47,7 +47,7 @@ public:
     Dyn_min = -135;
     Dyn_max = 135;
     Dyn_cmd= Dyn_min;
-    Dyn_n = 5;
+    Dyn_n = 25;
     Dyn_delta = (Dyn_max - Dyn_min)/Dyn_n;
     Dyn_dir = 1;
 
@@ -143,8 +143,8 @@ public:
 
       if(la_error < 8){
         if(std::fabs(Dyn_actual_error) < .05){
-          std::cout << "Actuators have reached setpoints, pausing for 1 sec\n";
-          ros::Duration(1.0).sleep();
+          std::cout << "Actuators have reached setpoints, pausing for 5 sec\n";
+          ros::Duration(5.0).sleep();
           return 0;
         }
       }
@@ -162,6 +162,17 @@ public:
 int main(int argc, char **argv){
  
   ros::init(argc, argv, "turntable");
+  std::cout << "Input args" << std::endl;
+  for(int i = 0; i < argc; i++){
+    std::cout << argv[i] <<std::endl;
+  }
+
+  if (argc < 3){
+    std::cout<< "ERROR: Need 2 arguments, arg1 is item number, arg2 is description\n";
+  }
+  std::stringstream str(argv[1]);
+  int item_number;
+  str >> item_number;
   ros::NodeHandle n;
   ros::ServiceClient save_images_client = n.serviceClient<turntable::saveImages>("save_images");
   turntable_class tt;
@@ -173,17 +184,25 @@ int main(int argc, char **argv){
 
 
   while (ros::ok())
-  {
+  {   
+      if(image_number >99){
+        break;
+      }
       is_moving = tt.check_angle_error();
       if( is_moving == 0){
         
-        srv.request.item_number = 1; // todo
+        srv.request.item_number = item_number; // todo
         srv.request.angle = tt.get_current_kinect_angle();
         srv.request.count = image_number;
+        srv.request.description = argv[2];
         image_number++;
         std::cout <<"calling service to save images"<<std::endl;
+        std::cout << "("<< srv.request.item_number<<", "
+                        << srv.request.angle<<", "
+                        << srv.request.count<<", "
+                        << srv.request.description << ")\n";
         bool res = save_images_client.call(srv);
-        std::cout << "response is: "<< srv.response.status<< std::endl;
+        std::cout << "response is: "<< res << std::endl;
 
         reset_angle = tt.update_turntable();
         if(reset_angle == 1){

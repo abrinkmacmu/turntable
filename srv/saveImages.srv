@@ -1,5 +1,6 @@
 uint16 item_number
 uint16 angle
 uint16 count
+string description
 ---
 uint64 status

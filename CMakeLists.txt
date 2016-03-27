@@ -49,6 +49,7 @@ find_package(catkin REQUIRED COMPONENTS
 find_package(OpenCV REQUIRED)
 find_package(OpenMP)
 find_package(PCL REQUIRED)
+find_package(Boost REQUIRED system filesystem date_time thread)
 
 if(OPENMP_FOUND)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
@@ -113,6 +114,7 @@ endif()
    dynamixel_msgs
    geometry_msgs
    std_msgs
+   turntable
  )
 
 ################################################
@@ -144,11 +146,20 @@ endif()
 ## LIBRARIES: libraries you create in this project that dependent projects also need
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
+
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES turntable
-#  CATKIN_DEPENDS dynamixel_controllers dynamixel_driver dynamixel_msgs geometry_msgs roscpp rospy std_msgs
-#  DEPENDS system_lib
+  #INCLUDE_DIRS include
+  #LIBRARIES turntable
+  CATKIN_DEPENDS 
+  dynamixel_controllers 
+  dynamixel_driver 
+  dynamixel_msgs 
+  geometry_msgs 
+  roscpp 
+  rospy 
+  std_msgs 
+  message_runtime
+  DEPENDS system_lib 
 )
 
 ###########
@@ -165,13 +176,14 @@ add_custom_target(additional_files_${PROJECT_NAME}
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-# include_directories(include)
+include_directories(include)
 
 include_directories(include
   ${catkin_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
   ${PCL_INCLUDE_DIRS}
   ${kinect2_bridge_INCLUDE_DIRS}
+  ${roscpp_INCLUDE_DIRS}
 )
 
 add_executable(kinect_viewer src/kinect_viewer.cpp)
@@ -184,12 +196,15 @@ target_link_libraries(kinect_viewer
 
 add_executable(run_turntable src/run_turntable.cpp)
 target_link_libraries(run_turntable ${catkin_LIBRARIES})
+#add_dependencies(run_turntable turntable_gencpp)
 
 add_executable(filter_greenscreen_node src/filter_greenscreen_node.cpp)
 target_link_libraries(filter_greenscreen_node ${catkin_LIBRARIES})
+#add_dependencies(filter_greenscreen_node turntable_gencpp)
 
 add_executable(save_images_server src/save_images_server.cpp)
 target_link_libraries(save_images_server ${catkin_LIBRARIES})
+#add_dependencies(save_images_server turntable_gencpp)
 
 #############
 ## Install ##
