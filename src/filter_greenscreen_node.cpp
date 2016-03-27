@@ -19,9 +19,10 @@ class ImageConverter
   int S_high;
   int V_low;
   int V_high;
-  int x_window;
-  int y_window;
-  
+  float x_window_origin;
+  float y_window_origin;
+  float x_window_size;
+  float y_window_size;
 public:
   ImageConverter()
     : it_(nh_)
@@ -41,8 +42,10 @@ public:
     V_low = 0;
     V_high = 255;
 
-    x_window = 17;
-    y_window = 33;
+    x_window_origin = .17;
+    y_window_origin = .33;
+    x_window_size = .5;
+    y_window_size = .66;
 
     cvNamedWindow("Image window", 2);
     cvNamedWindow ("trackbar", 2 );
@@ -54,8 +57,8 @@ public:
     cvCreateTrackbar( "S_high", "trackbar", &S_high, 255, 0 );
     cvCreateTrackbar( "V_low", "trackbar", &V_low, 255, 0 );
     cvCreateTrackbar( "V_high", "trackbar", &V_high, 255, 0 );
-    cvCreateTrackbar( "x_pos(pct)", "trackbar", &x_window, 50, 0);
-    cvCreateTrackbar( "y_pos(pct)", "trackbar", &y_window, 33, 0);
+    //cvCreateTrackbar( "x_pos(pct)", "trackbar", &x_window, 50, 0);
+    //cvCreateTrackbar( "y_pos(pct)", "trackbar", &y_window, 33, 0);
   }
 
   ~ImageConverter()
@@ -75,6 +78,12 @@ public:
     }
   }
 
+  void update_window_params(){
+    ros::param::get("/x_window_origin", x_window_origin);
+    ros::param::get("/y_window_origin", y_window_origin);
+    ros::param::get("/x_window_size", x_window_size);
+    ros::param::get("/y_window_size", y_window_size);
+  }
 
 
   void imageCb(const sensor_msgs::ImageConstPtr& msg)
@@ -90,6 +99,9 @@ public:
       ROS_ERROR("cv_bridge exception: %s", e.what());
       return;
     }
+
+    update_window_params();
+
     cv::Mat PreFilterImage;
     cv::Mat HSVImage;
     cv::Mat ThreshImage;
@@ -100,7 +112,10 @@ public:
     int cols = cv_ptr->image.cols;
     //std::cout << "rows, cols: "<< rows <<  ", "<< cols<< std::endl;
     cv::Mat roi_mask = cv::Mat::zeros(rows, cols, CV_8U); // all 0
-    roi_mask(cv::Rect( int(float(x_window)/100.0*float(cols)) , int(float(y_window)/100.0*float(rows)) ,int(float(cols)/2.0) , int(2.0*float(rows)/3.0) )) = 1;
+    roi_mask(cv::Rect( int(x_window_origin*float(cols)) , 
+                       int(y_window_origin*float(rows)) ,
+                       int(x_window_size*float(cols)) , 
+                       int(y_window_size*float(rows))   ) ) = 1;
 
     cv_ptr->image.copyTo(PreFilterImage, roi_mask);
 
