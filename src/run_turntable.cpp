@@ -171,6 +171,7 @@ int main(int argc, char **argv){
   int is_moving;
   int image_number = 0;
 
+
   while (ros::ok())
   {
       is_moving = tt.check_angle_error();
@@ -180,7 +181,7 @@ int main(int argc, char **argv){
         srv.request.angle = tt.get_current_kinect_angle();
         srv.request.count = image_number;
         image_number++;
-
+        std::cout <<"calling service to save images"<<std::endl;
         bool res = save_images_client.call(srv);
         std::cout << "response is: "<< srv.response.status<< std::endl;
 

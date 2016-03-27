@@ -4,7 +4,8 @@
         <param name="port" value="/dev/ttyACM0"/>
         <param name="baud" value="57600"/>
     </node>
-    
+
+    <rosparam command="load" file="$(find turntable)/config/item_dictionary.yaml" />  
 
     <include file="$(find turntable)/launch/spawner.launch"/>
     <include file="$(find turntable)/launch/manager.launch"/>

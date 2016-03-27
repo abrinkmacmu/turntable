@@ -29,6 +29,7 @@ find_package(catkin REQUIRED COMPONENTS
   dynamixel_msgs
   kinect2_bridge
   geometry_msgs
+  message_generation
   roscpp
   rospy
   std_msgs
