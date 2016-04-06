@@ -118,6 +118,7 @@ class save_images{
     subdir_str.append(num_2_item_dict[std::to_string(req.item_number)]);
     subdir_str.append("_");
     subdir_str.append(req.description);
+    subdir_str.append("_");
     boost::filesystem::path dir(dir_path+subdir_str);
     if(boost::filesystem::create_directory(dir)) {
       std::cout << "Created new Directory at " << dir_path + subdir_str<< std::endl;

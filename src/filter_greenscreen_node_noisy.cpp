@@ -6,7 +6,6 @@
 #include <opencv2/highgui/highgui.hpp>
 
 #include "opencv2/opencv.hpp"
-#include <cmath>
 
 static const std::string OPENCV_WINDOW = "Image window";
 
@@ -22,8 +21,6 @@ class ImageConverter
   int S_high;
   int V_low;
   int V_high;
-  int N_hull;
-  int do_convex_hull;
   float x_window_origin;
   float y_window_origin;
   float x_window_size;
@@ -37,7 +34,7 @@ public:
     image_sub_ = it_.subscribe("/kinect2/hd/image_color", 1, 
       &ImageConverter::imageCb, this);
     image_pub_ = it_.advertise("/image_converter/output_video", 1);
-	/*
+
     H_low = 50;
     H_high = 73;
 
@@ -46,18 +43,6 @@ public:
 
     V_low = 0;
     V_high = 255;
-	*/
-
-	H_low = 2;
-    H_high = 40;
-
-    S_low = 0;
-    S_high = 255;
-
-    V_low = 0;
-    V_high = 255;
-	N_hull = 2;
-    do_convex_hull = 1;
 
     x_window_origin = .17;
     y_window_origin = .33;
@@ -67,8 +52,6 @@ public:
     cvNamedWindow("Image window", 2);
     cvNamedWindow ("trackbar", 2 );
     cvNamedWindow("prefiltered image",2);
-	cvNamedWindow("drawing", 2);
-	cvNamedWindow("HSV Thresh", 2);
     cvSetMouseCallback("Image Window", ImageConverter::mouseHandler,0);
     cvCreateTrackbar( "H_low", "trackbar", &H_low, 255, 0 );
     cvCreateTrackbar( "H_high", "trackbar", &H_high, 255, 0 );
@@ -76,8 +59,6 @@ public:
     cvCreateTrackbar( "S_high", "trackbar", &S_high, 255, 0 );
     cvCreateTrackbar( "V_low", "trackbar", &V_low, 255, 0 );
     cvCreateTrackbar( "V_high", "trackbar", &V_high, 255, 0 );
-	cvCreateTrackbar( "Hull_size", "trackbar", &N_hull, 2, 0);
-    cvCreateTrackbar( "doConvexHull", "trackbar", &do_convex_hull, 1,0);
     //cvCreateTrackbar( "x_pos(pct)", "trackbar", &x_window, 50, 0);
     //cvCreateTrackbar( "y_pos(pct)", "trackbar", &y_window, 33, 0);
   }
@@ -134,7 +115,6 @@ public:
     int cols = cv_ptr->image.cols;
     //std::cout << "rows, cols: "<< rows <<  ", "<< cols<< std::endl;
 	cv::Mat mask = cv::Mat::zeros(rows, cols, CV_8U);
-cv::Mat final_img;
     cv::Mat roi_mask = cv::Mat::zeros(rows, cols, CV_8U); // all 0
 	cv::Mat cc_mask = cv::Mat::zeros(rows, cols, CV_8U);
     roi_mask(cv::Rect( int(x_window_origin*float(cols)) , 
@@ -149,99 +129,63 @@ cv::Mat final_img;
     cv::inRange(HSVImage,cv::Scalar(H_low,S_low,V_low),cv::Scalar(H_high,S_high,V_high),mask);
     //std::cout << "assign to img\n";
     mask = 255 - mask;
-	/*std::cout << "denoising...\n";
-	cv::fastNlMeansDenoising(mask, mask);
-	std::cout << "Finishedh\n";*/
 	PreFilterImage.copyTo(ThreshImage, mask);
-   if(do_convex_hull){	
+    hsv_ptr->image = ThreshImage;
+	/*
+    // Do blob detection
+    // set up the parameters (check the defaults in opencv's code in blobdetector.cpp)
+	cv::SimpleBlobDetector::Params params;
+	params.minDistBetweenBlobs = 50.0f;
+	params.filterByInertia = false;
+	params.filterByConvexity = false;
+	params.filterByColor = false;
+	params.filterByCircularity = false;
+	params.filterByArea = true;
+	params.minArea = 100.0f;
+	params.maxArea = 200000.0f;
+	// ... any other params you don't want default value
+
+	// set up and create the detector using the parameters
+	cv::SimpleBlobDetector blob_detector(params);
+	// or cv::Ptr<cv::SimpleBlobDetector> detector = cv::SimpleBlobDetector::create(params)
+
+	// detect!
+	std::vector<cv::KeyPoint> keypoints;
+	cv::Mat blobMask = cv::Mat::zeros(rows, cols, CV_8U); // all 0
+	blob_detector.detect(ThreshImage, keypoints, blobMask);
+	blobMask = 255 - blobMask;
+	ThreshImage.copyTo(blobImage, blobMask);
+
+	// extract the x y coordinates of the keypoints: 
+
+	for (int i=0; i<keypoints.size(); i++){
+		float X = keypoints[i].pt.x; 
+		float Y = keypoints[i].pt.y;
+		
+	}
+	cv::drawKeypoints(blobImage,keypoints,blobImage,cv::Scalar::all(-1));
+	
+	*/
+
+    // do contour filling
+
+
 	std::vector<std::vector<cv::Point> > contours;
-	//std::vector<cv::Point> contours;
-    std::vector<cv::Vec4i> hierarchy;
-
-    /// Find contours
-   cv::findContours( mask, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0) );
-
-   /// Find the convex hull object for each contour
-   std::vector<std::vector<cv::Point> >hull( contours.size() );
-	//std::vector<cv::Point> hull( contours.size() );
-   double largest_hull = 0;
-   int largest_hull_i = 0;
-   double sec_largest_hull = 0;
-   int sec_largest_hull_i = 0;
-	double third_hull =0;
-	int third_hull_i = 0;
-   std::vector<cv::Point> areaContour;
-	double area = 0;
-   for( int i = 0; i < contours.size(); i++ ){ 
-		
-		cv::convexHull( cv::Mat(contours[i]), hull[i], false ); 
-		
-
-		//calc area
-		area = 0;
-		for (int j = 0; j < hull[i].size(); j++){
-			int next_j = (j+1)%(hull[i].size());
-			double dX   = hull[i][next_j].x - hull[i][j].x;
-			double avgY = (hull[i][next_j].y + hull[i][j].y)/2;
-			area += dX*avgY;  // This is the integration step.
-		}
-
-		//std::cout << i << ", size: "<< contours[i].size()<<", area: " << area<< std::endl; 
-
-		if(std::abs(area) > largest_hull){
-			third_hull = sec_largest_hull;
-			third_hull_i = sec_largest_hull_i;
-	 		sec_largest_hull = largest_hull;
-			sec_largest_hull_i = largest_hull_i;
-			largest_hull = std::abs(area) ;
-		    largest_hull_i = i;
-		}else if(std::abs(area) > sec_largest_hull){
-			third_hull = sec_largest_hull;
-			third_hull_i = sec_largest_hull_i;
-			sec_largest_hull = std::abs(area) ;
-		    sec_largest_hull_i = i;
-		}else if(std::abs(area) > third_hull){
-			third_hull = std::abs(area);
-			third_hull_i = i;
-		}
-	}	
-	std::cout << "sizes of largest hulls: " << largest_hull << ", " << sec_largest_hull << std::endl;
-
-   /// Draw contours + hull results
-   cv::Mat drawing = cv::Mat::zeros( ThreshImage.size(), CV_8U );
-   cv::Mat drawing_visual = cv::Mat::zeros(ThreshImage.size(), CV_8UC3);
-  // for( int i = 0; i< contours.size(); i++ ){
-	int i;
-	if (N_hull == 0){
-		i = largest_hull_i;
-	}else if(N_hull == 1){
-		i = sec_largest_hull_i;
-	}else if(N_hull == 2){
-		i = third_hull_i;
+  	std::vector<cv::Vec4i> hierarchy;
+	// Find contours
+	cv::findContours( mask, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0) );
+	for(int idx = 0; idx < contours.size(); idx++){	
+		cv::drawContours( cc_mask, contours, idx, cv::Scalar(255, 0, 0), CV_FILLED, 8);
 	}
-        cv::Scalar color = cv::Scalar( 255, 0, 0 );
-		cv::Scalar color_2 = cv::Scalar(255);
-        //cv::drawContours( drawing_visual, hull, i, color, 1, 8, hierarchy, 2, cv::Point() );
-        cv::drawContours( drawing, hull, i, color_2, CV_FILLED, 8);
-    //  }
-	
-	
-	PreFilterImage.copyTo(final_img, drawing);
+	ThreshImage.copyTo(blobImage, cc_mask);
 
-	hsv_ptr->image =final_img;
     //std::cout << " after\n";
-    }else{
-       hsv_ptr->image = ThreshImage;
-	final_img = ThreshImage;
-	}
     
     // Output modified video stream
     image_pub_.publish(hsv_ptr->toImageMsg());
     //std::cout << "publishing new image\n";
     cv::imshow("prefiltered image", PreFilterImage);
-	cv::imshow("HSV Thresh", ThreshImage);
-	//cv::imshow("drawing", drawing_visual);
-    cv::imshow("Image window", final_img);
+    cv::imshow("Image window", blobImage);
     cv::waitKey(3);
     //std::cout << "updated window"<<std::endl;
     

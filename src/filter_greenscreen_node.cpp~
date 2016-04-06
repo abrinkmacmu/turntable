@@ -22,8 +22,7 @@ class ImageConverter
   int S_high;
   int V_low;
   int V_high;
-  int N_hull;
-  int do_convex_hull;
+	int N_hull;
   float x_window_origin;
   float y_window_origin;
   float x_window_size;
@@ -57,7 +56,6 @@ public:
     V_low = 0;
     V_high = 255;
 	N_hull = 2;
-    do_convex_hull = 1;
 
     x_window_origin = .17;
     y_window_origin = .33;
@@ -77,7 +75,6 @@ public:
     cvCreateTrackbar( "V_low", "trackbar", &V_low, 255, 0 );
     cvCreateTrackbar( "V_high", "trackbar", &V_high, 255, 0 );
 	cvCreateTrackbar( "Hull_size", "trackbar", &N_hull, 2, 0);
-    cvCreateTrackbar( "doConvexHull", "trackbar", &do_convex_hull, 1,0);
     //cvCreateTrackbar( "x_pos(pct)", "trackbar", &x_window, 50, 0);
     //cvCreateTrackbar( "y_pos(pct)", "trackbar", &y_window, 33, 0);
   }
@@ -134,7 +131,6 @@ public:
     int cols = cv_ptr->image.cols;
     //std::cout << "rows, cols: "<< rows <<  ", "<< cols<< std::endl;
 	cv::Mat mask = cv::Mat::zeros(rows, cols, CV_8U);
-cv::Mat final_img;
     cv::Mat roi_mask = cv::Mat::zeros(rows, cols, CV_8U); // all 0
 	cv::Mat cc_mask = cv::Mat::zeros(rows, cols, CV_8U);
     roi_mask(cv::Rect( int(x_window_origin*float(cols)) , 
@@ -153,7 +149,7 @@ cv::Mat final_img;
 	cv::fastNlMeansDenoising(mask, mask);
 	std::cout << "Finishedh\n";*/
 	PreFilterImage.copyTo(ThreshImage, mask);
-   if(do_convex_hull){	
+	
 	std::vector<std::vector<cv::Point> > contours;
 	//std::vector<cv::Point> contours;
     std::vector<cv::Vec4i> hierarchy;
@@ -225,15 +221,14 @@ cv::Mat final_img;
         cv::drawContours( drawing, hull, i, color_2, CV_FILLED, 8);
     //  }
 	
-	
+	cv::Mat final_img;
 	PreFilterImage.copyTo(final_img, drawing);
 
+
+
+    
 	hsv_ptr->image =final_img;
     //std::cout << " after\n";
-    }else{
-       hsv_ptr->image = ThreshImage;
-	final_img = ThreshImage;
-	}
     
     // Output modified video stream
     image_pub_.publish(hsv_ptr->toImageMsg());

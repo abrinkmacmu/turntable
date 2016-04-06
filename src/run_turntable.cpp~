@@ -117,7 +117,7 @@ public:
   }
   void update_window_params(){
     float x_window_origin[4] = {.15, .15, .1, .1};
-    float y_window_origin[4] = {0.25, 0.2, 0.12, 0.01};
+    float y_window_origin[4] = {0.25, 0.2, 0.12, 0.0};
     float x_window_size[4] = {.5, .5, .5 ,.5};
     float y_window_size[4] = {.55, .55, .55, .55};
     int cnt = LA_count%4;
