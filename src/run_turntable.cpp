@@ -116,10 +116,10 @@ public:
     LA_pub.publish(LA_cmd_sm);   
   }
   void update_window_params(){
-    float x_window_origin[4] = {.15, .15, .1, .1};
-    float y_window_origin[4] = {0.25, 0.2, 0.12, 0.01};
-    float x_window_size[4] = {.5, .5, .5 ,.5};
-    float y_window_size[4] = {.55, .55, .55, .55};
+    float x_window_origin[4] = {.25, .2, .2, .2};
+    float y_window_origin[4] = {0.25, 0.2, 0.1, 0.05};
+    float x_window_size[4] = {.35, .4, .4 ,.4};
+    float y_window_size[4] = {.45, .45, .5, .45};
     int cnt = LA_count%4;
     ros::param::set("/x_window_origin", x_window_origin[cnt]);
     ros::param::set("/y_window_origin", y_window_origin[cnt]);

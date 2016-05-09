@@ -28,6 +28,7 @@ class ImageConverter
   float y_window_origin;
   float x_window_size;
   float y_window_size;
+int invert_filter;
 public:
   ImageConverter()
     : it_(nh_)
@@ -78,6 +79,7 @@ public:
     cvCreateTrackbar( "V_high", "trackbar", &V_high, 255, 0 );
 	cvCreateTrackbar( "Hull_size", "trackbar", &N_hull, 2, 0);
     cvCreateTrackbar( "doConvexHull", "trackbar", &do_convex_hull, 1,0);
+	cvCreateTrackbar("invertFilter", "trackbar", &invert_filter, 1,0);
     //cvCreateTrackbar( "x_pos(pct)", "trackbar", &x_window, 50, 0);
     //cvCreateTrackbar( "y_pos(pct)", "trackbar", &y_window, 33, 0);
   }
@@ -148,7 +150,9 @@ cv::Mat final_img;
     //for blue
     cv::inRange(HSVImage,cv::Scalar(H_low,S_low,V_low),cv::Scalar(H_high,S_high,V_high),mask);
     //std::cout << "assign to img\n";
-    mask = 255 - mask;
+   if(invert_filter){
+    	mask = 255 - mask;
+    }
 	/*std::cout << "denoising...\n";
 	cv::fastNlMeansDenoising(mask, mask);
 	std::cout << "Finishedh\n";*/
